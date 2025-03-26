@@ -23,4 +23,7 @@ router.post('/inbound-call', callController.inboundCall);
 // Endpoint to list all call logs
 router.get('/call-logs', callController.getCallLogs);
 
+// Voice message endpoint
+router.post('/voice-message', callController.voiceMessage);
+
 module.exports = router;

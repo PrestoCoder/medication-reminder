@@ -6,16 +6,19 @@ const db = new sqlite3.Database(dbFile, (err) => {
      if (err) {
           console.error("Error opening database", err);
      } else {
-          db.run(`CREATE TABLE IF NOT EXISTS call_logs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      callSid TEXT,
-      phoneNumber TEXT,
-      status TEXT,
-      patientResponse TEXT,
-      recordingUrl TEXT,
-      llmReply TEXT,
-      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+          db.run(
+               `CREATE TABLE IF NOT EXISTS call_logs (
+               id INTEGER PRIMARY KEY AUTOINCREMENT,
+               callSid TEXT,
+               phoneNumber TEXT,
+               status TEXT,
+               patientResponse TEXT,
+               recordingUrl TEXT,
+               voiceMessageDelivered INTEGER DEFAULT 0,-- 0 means not delivered, 1 means delivered
+               smsDelivered INTEGER DEFAULT 0,         -- 0 means not delivered, 1 means delivered
+               timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+               );`
+          );
           console.log("Connected to SQLite database.");
      }
 });
