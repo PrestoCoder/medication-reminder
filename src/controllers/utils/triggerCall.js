@@ -20,6 +20,8 @@ module.exports = async function triggerCall(req, res) {
                recordingStatusCallbackMethod: 'POST',
                statusCallback: `${publicUrl}/webhook/call-status`,
                statusCallbackMethod: 'POST',
+               machineDetection: 'DetectMessageEnd',
+               machineDetectionTimeout: 30,
           });
 
           db.run(`UPDATE call_logs SET callSid = ? WHERE callSid = ?`, [call.sid, dummyCallSid]);

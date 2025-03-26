@@ -8,16 +8,17 @@ const db = new sqlite3.Database(dbFile, (err) => {
      } else {
           db.run(
                `CREATE TABLE IF NOT EXISTS call_logs (
-               id INTEGER PRIMARY KEY AUTOINCREMENT,
-               callSid TEXT,
-               phoneNumber TEXT,
-               status TEXT,
-               patientResponse TEXT,
-               recordingUrl TEXT,
-               voiceMessageDelivered INTEGER DEFAULT 0,-- 0 means not delivered, 1 means delivered
-               smsDelivered INTEGER DEFAULT 0,         -- 0 means not delivered, 1 means delivered
-               timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-               );`
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    callSid TEXT,
+                    phoneNumber TEXT,
+                    status TEXT,
+                    patientResponse TEXT,
+                    recordingUrl TEXT,
+                    answeredBy TEXT,
+                    voiceMessageDelivered INTEGER DEFAULT 0,
+                    smsDelivered INTEGER DEFAULT 0,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                    );`
           );
           console.log("Connected to SQLite database.");
      }
