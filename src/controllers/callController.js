@@ -5,4 +5,5 @@ exports.callStatus = require('./utils/callStatus');
 exports.voiceMessage = require('./utils/voiceMessage');
 exports.recordingWebhook = require('./utils/recordingWebhook');
 exports.inboundCall = require('./utils/inboundCall');
+exports.inboundVoiceResponse = require('./utils/inboundVoiceResponse');
 exports.getCallLogs = require('./utils/getCallLogs');

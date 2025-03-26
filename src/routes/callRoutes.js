@@ -26,4 +26,7 @@ router.get('/call-logs', callController.getCallLogs);
 // Voice message endpoint
 router.post('/voice-message', callController.voiceMessage);
 
+router.post('/webhook/inbound-voice-response', callController.inboundVoiceResponse);
+
+
 module.exports = router;

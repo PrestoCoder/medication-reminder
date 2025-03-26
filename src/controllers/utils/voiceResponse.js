@@ -1,13 +1,27 @@
-const db = require('../../utils/db');
+// src/controllers/utils/voiceResponse.js
 const twilio = require('twilio');
+const db = require('../../utils/db');
+
 module.exports = function voiceResponse(req, res) {
-     const speechResult = req.body.SpeechResult || "No response captured";
-     const callSid = req.body.CallSid || "unknown";
-     const phoneNumber = req.query.phone || "unknown";
-     db.run(`UPDATE call_logs SET patientResponse = ?, status = ?, voiceMessageDelivered = ? WHERE callSid = ?`, [speechResult, "answered", 1, callSid]);
      const VoiceResponse = twilio.twiml.VoiceResponse;
-     const responseTwiml = new VoiceResponse();
-     responseTwiml.say("Thank you. Your response has been recorded.");
+     const response = new VoiceResponse();
+
+     const callSid = req.body.CallSid;
+     const speechResult = req.body.SpeechResult || '';
+
+     // Update DB with the speech (optional)
+     db.run(
+          `UPDATE call_logs SET patientResponse = ? WHERE callSid = ?`,
+          [speechResult, callSid],
+          (err) => {
+               if (err) console.error("DB update failed:", err);
+          }
+     );
+
+     // Reply with "You said ..." + confirmation
+     response.say(`You said: ${speechResult}. Thank you for confirming your medication status.`);
+     response.hangup();
+
      res.type('text/xml');
-     res.send(responseTwiml.toString());
+     res.send(response.toString());
 };
