@@ -1,7 +1,7 @@
 // src/controllers/utils/voiceResponse.js
 const twilio = require('twilio');
 const db = require('../../utils/db');
-const { processPatientResponse } = require('../helpers/llmService');
+const { processPatientResponse } = require('../../utils/llmservice');
 
 module.exports = async function voiceResponse(req, res) {
      const VoiceResponse = twilio.twiml.VoiceResponse;
