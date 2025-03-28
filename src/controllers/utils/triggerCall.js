@@ -8,7 +8,7 @@ module.exports = async function triggerCall(req, res) {
 
      try {
           const dummyCallSid = "pending";
-          saveCallLog({ callSid: dummyCallSid, phoneNumber, status: "initiated", patientResponse: "", recordingUrl: "", voiceMessageDelivered: 0, smsDelivered: 0 });
+          saveCallLog({ callSid: dummyCallSid, phoneNumber, status: "initiated", patientResponse: "", recordingUrl: "", smsDelivered: 0 });
           const publicUrl = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
 
           const call = await twilioClient.calls.create({

@@ -15,7 +15,6 @@ const db = new sqlite3.Database(dbFile, (err) => {
                     patientResponse TEXT,
                     recordingUrl TEXT,
                     answeredBy TEXT,
-                    voiceMessageDelivered INTEGER DEFAULT 0,
                     smsDelivered INTEGER DEFAULT 0,
                     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                     );`
