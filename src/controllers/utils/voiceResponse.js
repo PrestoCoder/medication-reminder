@@ -1,27 +1,56 @@
 // src/controllers/utils/voiceResponse.js
 const twilio = require('twilio');
 const db = require('../../utils/db');
+const { processPatientResponse } = require('../helpers/llmService');
 
-module.exports = function voiceResponse(req, res) {
+module.exports = async function voiceResponse(req, res) {
      const VoiceResponse = twilio.twiml.VoiceResponse;
-     const response = new VoiceResponse();
+     const twimlResponse = new VoiceResponse();
 
      const callSid = req.body.CallSid;
      const speechResult = req.body.SpeechResult || '';
 
-     // Update DB with the speech (optional)
+     console.log('Patient response:', speechResult);
+
+     // Update DB with the patient's response
      db.run(
           `UPDATE call_logs SET patientResponse = ? WHERE callSid = ?`,
           [speechResult, callSid],
           (err) => {
-               if (err) console.error("DB update failed:", err);
+               if (err) console.error("Error updating patientResponse:", err);
           }
      );
 
-     // Reply with "You said ..." + confirmation
-     response.say(`You said: ${speechResult}. Thank you for confirming your medication status.`);
-     response.hangup();
+     try {
+          // Process the patient's response via the LLM
+          const llmResult = await processPatientResponse(speechResult);
+
+          if (llmResult.shouldProceed) {
+               // If the LLM indicates it's OK, confirm and end the call.
+               twimlResponse.say(`You said: ${speechResult}. Thank you for confirming your medication status. Goodbye.`);
+               twimlResponse.hangup();
+          } else {
+               // Otherwise, ask the follow-up prompt from the LLM.
+               const followUpPrompt = llmResult.followUpPrompt;
+               const gather = twimlResponse.gather({
+                    input: 'speech',
+                    action: '/webhook/voice-response',  // Reuse the same endpoint for further input
+                    method: 'POST',
+                    timeout: 10,
+                    language: 'en-US'
+               });
+               gather.say(followUpPrompt);
+               // Fallback if no response is given
+               twimlResponse.say("We did not receive your response. Goodbye.");
+               twimlResponse.hangup();
+          }
+     } catch (err) {
+          console.error("LLM processing error:", err);
+          // On error, default to a simple confirmation message
+          twimlResponse.say(`You said: ${speechResult}. Thank you for confirming your medication status. Goodbye.`);
+          twimlResponse.hangup();
+     }
 
      res.type('text/xml');
-     res.send(response.toString());
+     res.send(twimlResponse.toString());
 };
