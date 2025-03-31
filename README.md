@@ -19,32 +19,31 @@ A voice-driven medication reminder system built using Node.js, Twilio, and an LL
    Each call's recording URL is stored and displayed for review.
 
 4. **Voicemail Handling**  
-   If the call is declined or unanswered, a voice message is left using AMD (Answering Machine Detection) to ensure it's played after the beep.
+   If the call is declined or unanswered, a voice message is left.  
+   **Note**: AMD (Answering Machine Detection) is used only to wait for the machine's beep — it does not leave the message. It ensures the voice message is delivered clearly, after the beep.
 
 5. **SMS Fallback**  
    Intended to send SMS if voicemail is unavailable, but due to Twilio number restrictions, SMS authorization failed during testing (denied twice).
 
-6. **Answering Machine Detection (AMD)**  
-   Introduces a ~5s delay but ensures voicemail is clear and not overlapping with the voice message.
-
-7. **LLM Integration**  
+6. **LLM Integration**  
    Patients can converse with the system in real-time via phone, with the system continuing the conversation until the patient confirms whether they've taken their medicine.
 
 ---
 
 ### 📞 Incoming Calls
 
-- Same as outgoing call flow, **except**:
-  - No voicemail handling.
-  - AMD is **still required**, since only humans are expected to call back.
+- Same call flow as outgoing, **except**:
+  - No voicemail is left.
+  - **AMD is not used**, since only humans are expected to call back.
+  - To reduce spam or irrelevant inbound calls, you can later maintain an allowlist in a DB to restrict caller numbers.
 
 ---
 
 ## ⚠️ Special Considerations
 
 - **AMD Delay**: A 5-second delay is introduced, but it's essential. Without it, voicemail overlaps the system message in the final recording.
-- **Carrier Voicemail Fallback**: Even if voicemail is disabled on the mobile device, calls may be routed to the carrier’s voicemail when declined. AMD helps handle this reliably.
-- **Answer Source Tracking**: In the database, an `answered_by` column has been added to capture who answered the call:
+- **Carrier Voicemail Fallback**: Even if voicemail is disabled on the mobile device, calls may be routed to the carrier’s voicemail when declined. AMD ensures the message waits for the beep.
+- **Answer Source Tracking**: In the database, an `answered_by` column is stored to indicate how the call was handled:
   - `"machine_end_beep"` → voicemail bot
   - `"human"` → a real person
   - `"unknown"` → user spoke but system couldn’t confirm
@@ -72,13 +71,14 @@ npm install
 In the root directory, create a `.env` file with the following:
 
 ```env
-TWILIO_ACCOUNT_SID=your_twilio_sid             # From your Twilio console
-TWILIO_AUTH_TOKEN=your_twilio_auth_token       # From your Twilio console
-TWILIO_PHONE_NUMBER=your_twilio_phone_number   # Must be a verified or authorized number
-LLM_API_KEY=your_llm_service_key               # Your chosen LLM service API key
-PORT=3000                                      # Or any preferred port
-DATABASE_FILE=call_logs.db                     # SQLite file path for storing call logs
-PUBLIC_URL=https://your-ngrok-url              # Public URL from ngrok for webhook callback
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
+LLM_API_KEY=your_llm_service_key
+PORT=3000
+DATABASE_FILE=call_logs.db
+PUBLIC_URL=https://your-ngrok-url
+TEST_PHONE_NUMBER=+1623XXXXXXX
 ```
 
 - All tokens and IDs must be your own.
@@ -113,40 +113,25 @@ curl -X POST http://localhost:3000/trigger-call \
 
 ## 🧪 Testing
 
-### Run Tests
+### How to Run
+
+Make sure you've added `TEST_PHONE_NUMBER` in your `.env` file. Then simply run:
 
 ```bash
 npm test
 ```
 
-### Pass a Phone Number to the Test
+### What the Tests Cover
 
-There are two ways to provide a custom phone number:
+The test suite verifies key functionality of the system including:
 
-#### 1. Using Environment Variable
+- ✅ API route `/trigger-call` is working and accepts valid phone numbers
+- ✅ Call initiation response structure is as expected
+- ✅ System behaves correctly when a call is triggered to a live number (mock/stub mode can be added for isolated testing)
+- ✅ Configuration variables (`.env`) are read properly
+- ✅ Error scenarios are logged and handled gracefully
 
-```bash
-TEST_PHONE_NUMBER=+1623XXXXXXX npm test
-```
-
-In your test file:
-
-```js
-const phoneNumber = process.env.TEST_PHONE_NUMBER || '+10000000000';
-```
-
-#### 2. Using Command-Line Argument
-
-```bash
-npm test -- --phone=+1623XXXXXXX
-```
-
-In your test file:
-
-```js
-const phoneNumberArg = process.argv.find(arg => arg.startsWith('--phone='));
-const phoneNumber = phoneNumberArg ? phoneNumberArg.split('=')[1] : '+10000000000';
-```
+Tests are structured using standard Node.js test frameworks and simulate interaction with the core service logic without needing real API calls unless configured to.
 
 ---
 
@@ -165,7 +150,7 @@ const phoneNumber = phoneNumberArg ? phoneNumberArg.split('=')[1] : '+1000000000
 - ✅ LLM-based live phone interaction
 - ✅ Database storage of call logs
 - ✅ Call recording URL capture
-- ✅ Voice message handling via AMD
+- ✅ Voice message handling with AMD timing
 - ✅ Differentiation of machine vs. human answer using `answered_by`
 - ⚠️ SMS sending attempted but blocked due to Twilio restrictions
 
