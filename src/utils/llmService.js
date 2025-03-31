@@ -1,62 +1,58 @@
+// src/utils/llmservice.js
 const axios = require('axios');
 
 /**
- * Generates a follow-up response for a patient's answer.
- */
-async function getFollowUpResponse(patientText) {
-     try {
-          const response = await axios.post(
-               'https://api.openai.com/v1/engines/text-davinci-003/completions',
-               {
-                    prompt: `Patient said: "${patientText}". Provide a helpful follow-up response that clarifies if the medication was taken, or asks for further confirmation if needed.`,
-                    max_tokens: 50,
-                    temperature: 0.7,
-               },
-               {
-                    headers: {
-                         'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
-                         'Content-Type': 'application/json'
-                    }
-               }
-          );
-          return response.data.choices[0].text.trim();
-     } catch (err) {
-          console.error("LLM error:", err);
-          return "We're having trouble processing your response.";
-     }
-}
-
-/**
- * Checks whether the patient's response indicates a clear confirmation.
- * If so, returns an object with shouldProceed: true.
- * Otherwise, returns shouldProceed: false along with a follow-up prompt.
+ * processPatientResponse
+ * 
+ * Sends patient input to the OpenAI Chat Completion API using gpt-3.5-turbo.
+ * If the LLM response includes "OK" (case-insensitive), it indicates
+ * the patient has confirmed medication usage. Otherwise, returns a follow-up
+ * prompt for further clarification.
  */
 async function processPatientResponse(patientText) {
      try {
           const response = await axios.post(
-               'https://api.openai.com/v1/engines/text-davinci-003/completions',
+               'https://api.openai.com/v1/chat/completions',
                {
-                    prompt: `Patient said: "${patientText}". If this clearly indicates that the patient has taken their medication, reply with just "OK". Otherwise, provide a brief follow-up question to clarify the response.`,
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                         {
+                              role: 'system',
+                              content: 'You are a helpful medical assistant verifying medication usage. You have asked the patient to confirm if they have taken your Aspirin, Cardivol, and Metformin today.'
+                         },
+                         {
+                              role: 'user',
+                              content: `Patient said: "${patientText}". 
+                              If this clearly indicates that the patient has taken their medication, reply with just "OK". 
+                              Otherwise, ask a brief follow-up question, or answer the patient's question.`
+                         }
+                    ],
                     max_tokens: 50,
-                    temperature: 0.3,
+                    temperature: 0.3
                },
                {
                     headers: {
-                         'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
+                         Authorization: `Bearer ${process.env.LLM_API_KEY}`, // set your OpenAI API key in .env
                          'Content-Type': 'application/json'
                     }
                }
           );
-          const resultText = response.data.choices[0].text.trim();
-          if (resultText.toLowerCase().includes("ok")) {
-               return { shouldProceed: true };
+
+          // Extract the reply from the assistant message
+          const resultText = response.data.choices[0].message.content.trim();
+
+          // If LLM's answer includes "OK", assume patient has confirmed meds
+          if (resultText.toLowerCase().includes('ok')) {
+               return { shouldProceed: true, concludingResponse: resultText };
           } else {
+               // Otherwise, return the follow-up prompt
                return { shouldProceed: false, followUpPrompt: resultText };
           }
      } catch (err) {
-          console.error("LLM error:", err);
-          return { shouldProceed: true }; // default to proceeding in case of an error
+          console.error('LLM error:', err);
+          // If an error occurs, default to "shouldProceed = true"
+          return { shouldProceed: true };
      }
 }
 
-module.exports = { getFollowUpResponse, processPatientResponse };
+module.exports = { processPatientResponse };

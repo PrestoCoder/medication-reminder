@@ -24,6 +24,7 @@ module.exports = async function voiceResponse(req, res) {
      try {
           // Process the patient's response via the LLM
           const llmResult = await processPatientResponse(speechResult);
+          console.log('LLM response:', llmResult);
 
           if (llmResult.shouldProceed) {
                // If the LLM indicates it's OK, confirm and end the call.
