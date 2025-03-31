@@ -156,6 +156,21 @@ Tests are structured using standard Node.js test frameworks and simulate interac
 
 ---
 
+## 🔮 Future Enhancements
+
+- Add a **patient-specific database**, with:
+  - Patient name
+  - Phone number
+  - Prescribed medications
+  - Call interaction records
+- Extend the API to support patient-specific operations:
+  - Trigger calls based on patient ID
+  - Query historical medication confirmations per patient
+  - Log missed confirmations and escalations
+- Optionally add reminder scheduling and preferred call windows
+
+---
+
 ## 📧 Contact
 
 For questions or issues, contact: `rchhibba@asu.edu`
