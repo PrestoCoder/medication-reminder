@@ -106,7 +106,8 @@ curl -X POST http://localhost:3000/trigger-call \
 
 ### 🔹 Receive an Inbound Call
 
-Simply keep the server running and make an inbound call to your Twilio number. Twilio will invoke your `PUBLIC_URL` (set via webhook) with the appropriate handler.
+- Keep the server running and make a call to your Twilio number.
+- To allow inbound calls, **set your `PUBLIC_URL/inbound-call` as the webhook URL for voice calls in your Twilio Console**.
 
 ---
 
