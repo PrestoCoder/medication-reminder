@@ -7,6 +7,7 @@ const nock = require('nock');
 
 describe('API Endpoints', () => {
 
+     const phoneNumber = process.env.TEST_PHONE_NUMBER || '+10000000000'; // fallback
      // Example: Test the /trigger-call endpoint
      it('should trigger a call and return a callSid', async () => {
           // Since triggering an actual call would hit Twilio,
@@ -14,7 +15,7 @@ describe('API Endpoints', () => {
           // For simplicity here, assume the endpoint returns a JSON with callSid.
           const res = await request(app)
                .post('/trigger-call')
-               .send({ phoneNumber: '+16237595186' })
+               .send({ phoneNumber })
                .expect(200);
 
           expect(res.body).to.have.property('callSid');
