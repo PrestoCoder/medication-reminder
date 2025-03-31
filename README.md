@@ -1,8 +1,4 @@
-Here’s the complete updated `README.md` with the new **Usage** section and instructions on how to pass a phone number to the test suite:
 
----
-
-```markdown
 # Medication Reminder System
 
 A voice-driven medication reminder system built using Node.js, Twilio, and an LLM-backed voice interface. This service enables real-time medication reminders and logging via voice calls with intelligent handling of voicemails, speech recognition, and automated interactions.
@@ -159,9 +155,8 @@ const phoneNumber = phoneNumberArg ? phoneNumberArg.split('=')[1] : '+1000000000
 
 ## 📧 Contact
 
-For questions or issues, contact: `your-email@example.com`
+For questions or issues, contact: `rchhibba@asu.edu`
 ```
 
----
 
-Let me know your GitHub repo link if you'd like me to personalize this further.
+
