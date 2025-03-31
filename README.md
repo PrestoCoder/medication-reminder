@@ -44,18 +44,25 @@ A voice-driven medication reminder system built using Node.js, Twilio, and an LL
 
 - **AMD Delay**: A 5-second delay is introduced, but it's essential. Without it, voicemail overlaps the system message in the final recording.
 - **Carrier Voicemail Fallback**: Even if voicemail is disabled on the mobile device, calls may be routed to the carrier’s voicemail when declined. AMD helps handle this reliably.
+- **Answer Source Tracking**: In the database, an `answered_by` column has been added to capture who answered the call:
+  - `"machine_end_beep"` → voicemail bot
+  - `"human"` → a real person
+  - `"unknown"` → user spoke but system couldn’t confirm
+  - `NULL` → call was not picked up or no response was given
 
 ---
 
 ## 🚀 Usage
 
 ### Step 1: Clone the Repository
+
 ```bash
 git clone https://github.com/your-username/medication-reminder.git
 cd medication-reminder
 ```
 
 ### Step 2: Install Dependencies
+
 ```bash
 npm install
 ```
@@ -78,6 +85,7 @@ PUBLIC_URL=https://your-ngrok-url              # Public URL from ngrok for webho
 - Use [`ngrok`](https://ngrok.com/) to expose your local server and obtain the `PUBLIC_URL`.
 
 ### Step 4: Start the Server
+
 ```bash
 npm start
 ```
@@ -86,21 +94,26 @@ npm start
 
 ## 📲 API Usage
 
-### Trigger a Call
-```http
-POST /call
-Content-Type: application/json
+### 🔹 Make an Outbound Call
 
-{
-  "phoneNumber": "+1234567890"
-}
+You can trigger an outbound call directly from the terminal:
+
+```bash
+curl -X POST http://localhost:3000/trigger-call \
+  -H "Content-Type: application/json" \
+  -d '{"phoneNumber": "+16237595186"}'
 ```
+
+### 🔹 Receive an Inbound Call
+
+Simply keep the server running and make an inbound call to your Twilio number. Twilio will invoke your `PUBLIC_URL` (set via webhook) with the appropriate handler.
 
 ---
 
 ## 🧪 Testing
 
 ### Run Tests
+
 ```bash
 npm test
 ```
@@ -110,22 +123,25 @@ npm test
 There are two ways to provide a custom phone number:
 
 #### 1. Using Environment Variable
+
 ```bash
 TEST_PHONE_NUMBER=+1623XXXXXXX npm test
 ```
 
-Ensure your test file reads it like:
+In your test file:
 
 ```js
 const phoneNumber = process.env.TEST_PHONE_NUMBER || '+10000000000';
 ```
 
 #### 2. Using Command-Line Argument
+
 ```bash
 npm test -- --phone=+1623XXXXXXX
 ```
 
 In your test file:
+
 ```js
 const phoneNumberArg = process.argv.find(arg => arg.startsWith('--phone='));
 const phoneNumber = phoneNumberArg ? phoneNumberArg.split('=')[1] : '+10000000000';
@@ -137,9 +153,9 @@ const phoneNumber = phoneNumberArg ? phoneNumberArg.split('=')[1] : '+1000000000
 
 - **Node.js** (Express)
 - **Twilio Voice API**
-- **STT/TTS Services** (e.g., Deepgram, ElevenLabs)
-- **LLM API** for natural phone conversation
-- **SQLite** (`call_logs.db`) for storing call logs
+- **TwiML** for both TTS and STT (used instead of Deepgram/ElevenLabs to reduce latency)
+- **LLM API** for phone-based natural language conversation
+- **SQLite** (`call_logs.db`) for storing call logs with metadata like `answered_by`, response text, and call status
 
 ---
 
@@ -149,6 +165,7 @@ const phoneNumber = phoneNumberArg ? phoneNumberArg.split('=')[1] : '+1000000000
 - ✅ Database storage of call logs
 - ✅ Call recording URL capture
 - ✅ Voice message handling via AMD
+- ✅ Differentiation of machine vs. human answer using `answered_by`
 - ⚠️ SMS sending attempted but blocked due to Twilio restrictions
 
 ---
@@ -156,7 +173,3 @@ const phoneNumber = phoneNumberArg ? phoneNumberArg.split('=')[1] : '+1000000000
 ## 📧 Contact
 
 For questions or issues, contact: `rchhibba@asu.edu`
-```
-
-
-
